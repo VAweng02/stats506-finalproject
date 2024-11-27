@@ -6,10 +6,10 @@ format:
     embed-resources: true
 ---
 
+Data Importing, Cleaning, and Merge
 ```{r}
 stats <- read.csv("regular_season_totals_2010_2024.csv", header = TRUE)
-
-head(stats)
+att <- read.csv("nba_attendance_2014_2024.csv", header = TRUE)
 
 stats <- subset(stats, select = -c(TEAM_ID, TEAM_ABBREVIATION, GAME_ID, 
                                    GAME_DATE, MIN, GP_RANK, W_RANK, L_RANK, 
@@ -17,7 +17,49 @@ stats <- subset(stats, select = -c(TEAM_ID, TEAM_ABBREVIATION, GAME_ID,
                                    FG_PCT_RANK, FG3M_RANK, FG3A_RANK, FG3_PCT_RANK,
                                    FTM_RANK, FT_PCT_RANK, OREB_RANK, FTA_RANK, 
                                    DREB_RANK, REB_RANK, AST_RANK, STL_RANK, BLK_RANK, 
-                                   BLKA_RANK, PF_RANK, PFD_RANK, PTS_RANK, PLUS_MINUS_RANK))
+                                   BLKA_RANK, PF_RANK, PFD_RANK, PTS_RANK, PLUS_MINUS_RANK,
+                                   TOV_RANK, AVAILABLE_FLAG))
 
-colnames(stats)
+att <- subset(att, select = -c(GMS, TOTAL, PCT, GMS.1, AVG.1, PCT.1, GMS.2, AVG.2, PCT.2))
+
+stats$SEASON_YEAR <- gsub(".*-", "", stats$SEASON_YEAR)
+stats$SEASON_YEAR <- as.numeric(stats$SEASON_YEAR) + 2000
+stats$SEASON_YEAR <- as.integer(stats$SEASON_YEAR)
+stats$TEAM_NAME <- sub(".*\\s", "", stats$TEAM_NAME)
+att$TEAM <- sub(".*\\s", "", att$TEAM)
+
+colnames(att)[c(1)] <- c("YEAR")
+colnames(stats)[c(1, 2)] <- c("YEAR", "TEAM")
+
+df <- merge(stats, att, by = c("YEAR", "TEAM"), all = FALSE)
+
+colnames(df)
 ```
+
+
+Data Aggregation
+```{r}
+library(dplyr)
+
+df <- df %>%
+  group_by(YEAR, TEAM) %>%
+  summarise(
+    WIN_PCT = sum(WL == "W") / n(),  # Calculate win percentage
+    across(c(FGM:PLUS_MINUS), mean, na.rm = TRUE),  # Average for numeric stats
+    AVG = first(AVG)  # Keep AVG the same for each team/year
+  )
+
+df
+```
+
+
+
+
+
+
+
+
+
+
+
+
