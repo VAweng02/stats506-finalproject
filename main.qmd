@@ -32,8 +32,9 @@ colnames(att)[c(1)] <- c("YEAR")
 colnames(stats)[c(1, 2)] <- c("YEAR", "TEAM")
 
 df <- merge(stats, att, by = c("YEAR", "TEAM"), all = FALSE)
+df$AVG <- as.numeric(gsub(",", "", df$AVG))
 
-colnames(df)
+df
 ```
 
 
@@ -52,7 +53,117 @@ df <- df %>%
 df
 ```
 
+Exploratory Data Analysis
+```{r}
+library(dplyr)
+library(ggplot2)
 
+avg_att_by_year <- df %>%
+  group_by(YEAR) %>%
+  summarise(
+    AVG = mean(AVG, na.rm = TRUE)
+  )
+
+ggplot(avg_att_by_year, aes(x = YEAR, y = AVG)) +
+  geom_line(color = "lightblue", size = 1) +  # Add a blue line
+  geom_point(color = "pink", size = 3) +  # Add red points
+  geom_text(aes(label = round(AVG, 2)), vjust = -0.5, size = 2.5) +  # Add values above points
+  labs(
+    title = "Average Attendance by Year",
+    x = "Year",
+    y = "Average Attendance"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16),  # Center and enlarge the title
+    axis.title.x = element_text(hjust = 0.5, size = 14),  # Center and enlarge x-axis title
+    axis.title.y = element_text(hjust = 0.5, size = 14),  # Center and enlarge y-axis title
+    axis.text = element_text(size = 12),  # Increase axis text size
+    plot.margin = margin(20, 20, 20, 20)  # Add padding around the plot
+  )
+
+```
+
+
+Attendance Rate and Win Percentage Correlation Test
+```{r}
+library(ggplot2)
+
+# Create the scatterplot
+ggplot(df, aes(x = WIN_PCT, y = AVG)) +
+  geom_point(color = "blue", size = 3, alpha = 0.7) +  # Add scatter points
+  geom_smooth(method = "lm", color = "red", se = TRUE) +  # Add a linear regression line
+  labs(
+    title = "Scatterplot of Win Percentage vs Average Attendance",
+    x = "Win Percentage",
+    y = "Average Attendance"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16),  # Center the title
+    axis.title.x = element_text(size = 14),  # Enlarge x-axis label
+    axis.title.y = element_text(size = 14),  # Enlarge y-axis label
+    axis.text = element_text(size = 12)  # Increase axis text size
+  )
+
+# Pearson correlation test
+cor_test_pearson <- cor.test(df$WIN_PCT, df$AVG, method = "pearson")
+print(cor_test_pearson)
+```
+
+
+Ranking teams based on attendance and win percentage correlation
+```{r}
+library(dplyr)
+
+# Calculate correlation for each team
+team_correlations <- df %>%
+  group_by(TEAM) %>%
+  summarise(
+    correlation = cor(WIN_PCT, AVG, use = "complete.obs", method = "pearson"),
+    p_value = cor.test(WIN_PCT, AVG, method = "pearson")$p.value
+  )
+
+# Sort by strongest correlation
+team_correlations_sorted <- team_correlations %>%
+  arrange(desc(correlation))
+
+print(team_correlations_sorted)
+```
+
+
+
+Shooting Percentage and Win Percentage Correlation Test
+```{r}
+fg <- cor.test(df$FG_PCT, df$AVG, method = "pearson")
+print(fg)
+
+fg3 <- cor.test(df$FG3_PCT, df$AVG, method = "pearson")
+print(fg3)
+
+ft <- cor.test(df$FT_PCT, df$AVG, method = "pearson")
+print(ft)
+```
+
+
+
+Basic Stats and Win Percentage Correlation Test
+```{r}
+pts <- cor.test(df$PTS, df$AVG, method = "pearson")
+print(pts)
+
+ast <- cor.test(df$AST, df$AVG, method = "pearson")
+print(ast)
+
+reb <- cor.test(df$REB, df$AVG, method = "pearson")
+print(reb)
+
+stl <- cor.test(df$STL, df$AVG, method = "pearson")
+print(stl)
+
+blk <- cor.test(df$BLK, df$AVG, method = "pearson")
+print(blk)
+```
 
 
 
