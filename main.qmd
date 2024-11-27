@@ -1,0 +1,23 @@
+---
+title: "STATS 506 - Final Project"
+author: "Vincent Weng"
+format:
+  html:
+    embed-resources: true
+---
+
+```{r}
+stats <- read.csv("regular_season_totals_2010_2024.csv", header = TRUE)
+
+head(stats)
+
+stats <- subset(stats, select = -c(TEAM_ID, TEAM_ABBREVIATION, GAME_ID, 
+                                   GAME_DATE, MIN, GP_RANK, W_RANK, L_RANK, 
+                                   W_PCT_RANK, MIN_RANK, FGM_RANK, FGA_RANK,
+                                   FG_PCT_RANK, FG3M_RANK, FG3A_RANK, FG3_PCT_RANK,
+                                   FTM_RANK, FT_PCT_RANK, OREB_RANK, FTA_RANK, 
+                                   DREB_RANK, REB_RANK, AST_RANK, STL_RANK, BLK_RANK, 
+                                   BLKA_RANK, PF_RANK, PFD_RANK, PTS_RANK, PLUS_MINUS_RANK))
+
+colnames(stats)
+```
